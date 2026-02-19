@@ -1,0 +1,61 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: arena-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: algorithmic_arena
+
+  redis:
+    image: redis:7-alpine
+    container_name: arena-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  judge0-server:
+    image: judge0/judge0:1.13.0
+    container_name: arena-judge0
+    ports:
+      - "2358:2358"
+    environment:
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=judge0-db
+      - POSTGRES_PASSWORD=judge0password
+    depends_on:
+      - redis
+      - judge0-db
+
+  judge0-workers:
+    image: judge0/judge0:1.13.0
+    container_name: arena-judge0-workers
+    command: ["./scripts/workers"]
+    environment:
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=judge0-db
+      - POSTGRES_PASSWORD=judge0password
+    privileged: true
+    depends_on:
+      - redis
+      - judge0-db
+
+  judge0-db:
+    image: postgres:13
+    container_name: arena-judge0-db
+    environment:
+      - POSTGRES_PASSWORD=judge0password
+      - POSTGRES_DB=judge0
+    volumes:
+      - judge0_db_data:/var/lib/postgresql/data
+
+volumes:
+  mongodb_data:
+  redis_data:
+  judge0_db_data:
