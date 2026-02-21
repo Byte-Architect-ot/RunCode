@@ -94,7 +94,7 @@ const Problems = () => {
                   <td className="px-6 py-4 text-gray-400">{index + 1}</td>
                   <td className="px-6 py-4">
                     <Link 
-                      to={`/problem/${problem.slug}`}
+                      to={`/problems/${problem.slug}`}
                       className="text-white hover:text-primary-400 font-medium transition-colors"
                     >
                       {problem.title}
