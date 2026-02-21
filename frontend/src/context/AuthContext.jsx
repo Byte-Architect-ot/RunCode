@@ -1,48 +1,60 @@
-import { createContext, useContext, useState, useEffect } from 'react'
-import api from '../services/api'
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI } from '../services/api';
 
-const AuthContext = createContext(null)
+const AuthContext = createContext(null);
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+};
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      api.get('/auth/me')
-        .then(res => setUser(res.data.user))
-        .catch(() => localStorage.removeItem('token'))
-        .finally(() => setLoading(false))
-    } else {
-      setLoading(false)
-    }
-  }, [])
+    useEffect(() => {
+        checkAuth();
+    }, []);
 
-  const login = async (email, password) => {
-    const res = await api.post('/auth/login', { email, password })
-    localStorage.setItem('token', res.data.token)
-    setUser(res.data.user)
-    return res.data
-  }
+    const checkAuth = async () => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const response = await authAPI.getUser();
+                setUser(response.data);
+            } catch (error) {
+                localStorage.removeItem('token');
+            }
+        }
+        setLoading(false);
+    };
 
-  const register = async (username, email, password) => {
-    const res = await api.post('/auth/register', { username, email, password })
-    localStorage.setItem('token', res.data.token)
-    setUser(res.data.user)
-    return res.data
-  }
+    const login = async (email, password) => {
+        const response = await authAPI.login({ email, password });
+        localStorage.setItem('token', response.data.token);
+        setUser(response.data.user);
+        return response.data;
+    };
 
-  const logout = () => {
-    localStorage.removeItem('token')
-    setUser(null)
-  }
+    const register = async (name, email, password) => {
+        const response = await authAPI.register({ name, email, password });
+        localStorage.setItem('token', response.data.token);
+        setUser(response.data.user);
+        return response.data;
+    };
 
-  return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
-  )
-}
+    const logout = () => {
+        localStorage.removeItem('token');
+        setUser(null);
+    };
 
-export const useAuth = () => useContext(AuthContext)
+    // NO Router here - just return children
+    return (
+        <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+            {!loading && children}
+        </AuthContext.Provider>
+    );
+};

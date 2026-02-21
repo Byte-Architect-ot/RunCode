@@ -35,7 +35,15 @@ const Navbar = () => {
             <Link to="/problems" className={navLinkClass('/problems')}>
               Problems
             </Link>
-            
+            {/* <Link 
+                                to="/contests"
+                                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md font-medium"
+                            >
+                                Contests
+                            </Link> */}
+            <Link to="/contests" className={navLinkClass('/contests')}>
+              Contests
+            </Link>
             {user ? (
               <>
                 <Link to="/submissions" className={navLinkClass('/submissions')}>
