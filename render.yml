@@ -1,0 +1,49 @@
+services:
+
+  # 1. The Main Backend
+
+  - type: web
+    name: algorithmic-arena-backend
+    env: docker
+    rootDir: ./backend
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      # sync: false means Render will prompt you to enter these securely in the dashboard
+      - key: MONGODB_URI
+        sync: false 
+      - key: JWT_SECRET
+        sync: false
+
+
+  # 2. The Submission Webhook
+
+  - type: web
+    name: algorithmic-arena-webhook
+    env: docker
+    rootDir: ./submission-webhook
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: MONGODB_URI
+        sync: false
+
+
+  # 3. The Frontend
+
+  - type: web
+    name: algorithmic-arena-frontend
+    env: docker
+    rootDir: ./frontend
+    plan: free
+    envVars:
+      # Render dynamically assigns URLs. We tell the frontend to point to the backend's Render URL.
+      # You will need to update this value once Render generates your backend's actual URL!
+      - key: VITE_API_URL
+        value: https://algorithmic-arena-backend.onrender.com
